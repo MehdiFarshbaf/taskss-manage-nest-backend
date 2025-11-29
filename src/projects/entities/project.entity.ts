@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import ProjectStatusEnum from '../enums/projectStatusEnum';
+import { Task } from '../../tasks/entities/task.entity';
 
 @Entity({ name: 'projects' })
 export class Project {
@@ -14,4 +15,7 @@ export class Project {
     default: ProjectStatusEnum.Enabled,
   })
   status: ProjectStatusEnum;
+
+  @OneToMany(() => Task, (task) => task.project)
+  tasks: Task[];
 }
