@@ -21,4 +21,7 @@ export class CreateTaskDto {
   @IsEnum(TaskStatusEnum, { message: 'وضعیت نا معتبر است.' })
   @IsOptional()
   status: TaskStatusEnum;
+
+  @IsNotEmpty({ message: 'شناسه پروژه الزامی است.' })
+  projectId: number;
 }
