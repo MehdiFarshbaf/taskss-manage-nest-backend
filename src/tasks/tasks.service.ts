@@ -1,10 +1,15 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm';
 import { Project } from '../projects/entities/project.entity';
+import TaskStatusEnum from './enums/taskStatus.Enum';
 
 @Injectable()
 export class TasksService {
@@ -29,12 +34,32 @@ export class TasksService {
     }
   }
 
-  findAll() {
-    return `This action returns all tasks`;
+  async findAll(
+    status?: TaskStatusEnum,
+    limit: number = 10,
+    page: number = 1,
+  ): Promise<Task[]> {
+    const query = this.taskRepository
+      .createQueryBuilder('tasks')
+      .leftJoinAndSelect('tasks.project', 'project');
+    if (status) {
+      query.where('tasks.status = :status', { status });
+    }
+    query.skip((page - 1) * limit).take(limit);
+    return await query.getMany();
+
+    // return await this.taskRepository.find({ relations: ['project'] });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} task`;
+  async findOne(id: number) {
+    const task = await this.taskRepository.findOne({
+      where: { id },
+      relations: ['project'],
+    });
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+    return task;
   }
 
   update(id: number, updateTaskDto: UpdateTaskDto) {
